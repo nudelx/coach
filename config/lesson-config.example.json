@@ -1,0 +1,17 @@
+{
+  "kids": [
+    {
+      "id": "kid-1",
+      "name": "Sample Kid",
+      "email": "sample.kid@example.com",
+      "startingLevel": 0,
+      "ownerEmails": ["parent.one@example.com"]
+    }
+  ],
+  "defaultOwnerEmails": ["teacher@example.com"],
+  "weeklySchedule": "0 9 * * 1",
+  "sender": {
+    "name": "English Coach",
+    "email": "your.gmail.username@gmail.com"
+  }
+}
