@@ -1,4 +1,4 @@
-const { CURRICULUM } = require('./curriculum');
+const { CURRICULUM } = require("./curriculum");
 
 const selectModuleForKid = (kidProgress) => {
   const { nextModuleIndex } = kidProgress;
@@ -10,73 +10,68 @@ const selectModuleForKid = (kidProgress) => {
 
 const summariseHistory = (deliveredLessons) => {
   if (!deliveredLessons || deliveredLessons.length === 0) {
-    return 'No previous lessons yet. Start from absolute beginner level.';
+    return "No previous lessons yet. Start from absolute beginner level.";
   }
 
   return deliveredLessons
     .map((lesson) => {
-      const summary = lesson.summary || lesson.emailSubject || lesson.moduleTitle;
-      return `${lesson.generatedAt.slice(0, 10)} – ${lesson.moduleTitle}: ${summary}`;
+      const summary =
+        lesson.summary || lesson.emailSubject || lesson.moduleTitle;
+      return `${lesson.generatedAt.slice(0, 10)} – ${
+        lesson.moduleTitle
+      }: ${summary}`;
     })
-    .join('\n');
+    .join("\n");
 };
 
 const buildLessonPrompt = ({ kid, module, kidProgress }) => {
   const historySummary = summariseHistory(kidProgress.deliveredLessons);
-  const revisitingNote = kidProgress.cyclesCompleted > 0
-    ? `The learner has already completed the core curriculum ${kidProgress.cyclesCompleted} time(s). Increase challenge with richer activities, authentic materials, and extended production.`
-    : '';
+  const revisitingNote =
+    kidProgress.cyclesCompleted > 0
+      ? `The learner has already completed the core curriculum ${kidProgress.cyclesCompleted} time(s). Increase challenge with richer activities, authentic materials, and extended production.`
+      : "";
   const kidDescriptors = [
     kid.age ? `age ${kid.age}` : null,
-    kid.languageBackground ? `native language: ${kid.languageBackground}` : null,
-    kid.interests ? `interests: ${kid.interests.join(', ')}` : null,
-  ].filter(Boolean).join(' | ');
+    kid.languageBackground
+      ? `native language: ${kid.languageBackground}`
+      : null,
+    kid.interests ? `interests: ${kid.interests.join(", ")}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
 
   return [
-    'You are an encouraging ESL tutor who designs engaging weekly lessons for kids.',
-    `Learner: ${kid.name}. ${kidDescriptors || 'Young beginner learner.'}`,
+    "You are an encouraging ESL tutor who designs and writes engaging weekly lessons for kids.",
+    `Learner: ${kid.name}. ${
+      kidDescriptors || "Young beginner learner. speaking Hebrew and russian"
+    }`,
+    "use hebrew and russian in the lesson, create kid friendly lesson plan",
     `Current CEFR focus: ${module.cefr}.`,
     revisitingNote,
-    'Keep continuity with the previous lessons. Avoid repeating identical activities unless for spaced review.',
-    'Past lesson highlights:',
+    "Keep continuity with the previous lessons. Avoid repeating identical activities unless for spaced review.",
+    "Past lesson highlights:",
     historySummary,
-    'Lesson requirements:',
-    '- Provide a concise overview paragraph that recaps the learning goals.',
-    '- Outline a 60-minute lesson broken into: Warm-up, Vocabulary, Grammar, Guided Practice, Communicative Task, Reflection, Homework.',
-    '- Include specific teacher prompts, expected student responses, and differentiation tips (support and challenge).',
-    '- Add a cultural or real-world connection when relevant.',
-    '- Finish with measurable success criteria for the learner.',
-    'Lesson focus details:',
+    "Lesson requirements:",
+    "- Provide a concise overview paragraph that recaps the learning goals.",
+    "- Outline a 40-minute lesson broken into: Warm-up, Vocabulary, Grammar, Guided Practice, Communicative Task, Reflection, Homework.",
+    "- Add a cultural or real-world connection when relevant.",
+    "- Finish with measurable success criteria for the learner.",
+    "Lesson focus details:",
     `Title: ${module.title}`,
-    `Objectives: ${module.objectives.join('; ')}`,
+    `Objectives: ${module.objectives.join("; ")}`,
     `Grammar focus: ${module.grammarFocus}`,
-    `Target vocabulary: ${module.vocabularyFocus.join(', ')}`,
-    `Suggested activities: ${module.activityIdeas.join(', ')}`,
-    'Write the lesson in markdown with clear headings and bullet points.',
-  ].join('\n');
+    `Target vocabulary: ${module.vocabularyFocus.join(", ")}`,
+    `Suggested activities: ${module.activityIdeas.join(", ")}`,
+    "Write the lesson in markdown with clear headings and bullet points.",
+  ].join("\n");
 };
 
 const buildEmailSubject = ({ kid, module, kidProgress }) => {
-  const lessonNumber = kidProgress.deliveredLessons.length + 1 + kidProgress.cyclesCompleted * CURRICULUM.length;
+  const lessonNumber =
+    kidProgress.deliveredLessons.length +
+    1 +
+    kidProgress.cyclesCompleted * CURRICULUM.length;
   return `English Lesson ${lessonNumber}: ${module.title} (${module.cefr})`;
-};
-
-const convertMarkdownLine = (line) => {
-  if (/^#/.test(line.trim())) {
-    const level = line.match(/^#+/)[0].length;
-    const text = line.replace(/^#+\s*/, '');
-    return `<h${level}>${text}</h${level}>`;
-  }
-
-  if (/^- /.test(line.trim())) {
-    return `<li>${line.replace(/^- /, '')}</li>`;
-  }
-
-  if (/^\d+[\).\s]/.test(line.trim())) {
-    return `<li>${line.replace(/^\d+[\).\s]/, '')}</li>`;
-  }
-
-  return `<p>${line}</p>`;
 };
 
 const wrapListItems = (segments) => {
@@ -84,14 +79,14 @@ const wrapListItems = (segments) => {
   let currentList = null;
 
   segments.forEach((segment) => {
-    if (segment.startsWith('<li>')) {
+    if (segment.startsWith("<li>")) {
       if (!currentList) {
         currentList = [];
       }
       currentList.push(segment);
     } else {
       if (currentList) {
-        grouped.push(`<ul>${currentList.join('')}</ul>`);
+        grouped.push(`<ul>${currentList.join("")}</ul>`);
         currentList = null;
       }
       grouped.push(segment);
@@ -99,18 +94,56 @@ const wrapListItems = (segments) => {
   });
 
   if (currentList) {
-    grouped.push(`<ul>${currentList.join('')}</ul>`);
+    grouped.push(`<ul>${currentList.join("")}</ul>`);
   }
 
   return grouped;
 };
 
+const applyInlineFormatting = (text) =>
+  text
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+
+const convertMarkdownLine = (line) => {
+  if (/^#/.test(line.trim())) {
+    const level = line.match(/^#+/)[0].length;
+    const text = line.replace(/^#+\s*/, "");
+    const classes = ["section-title"];
+    if (text.trim().toLowerCase() === "overview") {
+      classes.push("overview-title");
+    }
+    return `<h${level} class="${classes.join(" ")}">${text}</h${level}>`;
+  }
+
+  if (/^\*\*overview:\*\*/i.test(line.trim())) {
+    const content = line.replace(/^\*\*overview:\*\*\s*/i, "");
+    return `<div class="overview-block"><span class="overview-label">Overview:</span><span class="overview-content">${applyInlineFormatting(
+      content
+    )}</span></div>`;
+  }
+
+  if (/^- /.test(line.trim())) {
+    const text = line.replace(/^- /, "");
+    return `<li>${applyInlineFormatting(text)}</li>`;
+  }
+
+  if (/^\d+[\).\s]/.test(line.trim())) {
+    const text = line.replace(/^\d+[\).\s]/, "");
+    return `<li>${applyInlineFormatting(text)}</li>`;
+  }
+
+  return `<p class="lesson-text">${applyInlineFormatting(line)}</p>`;
+};
+
 const convertToHtml = (markdownText) => {
   const escaped = markdownText
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-  const normalized = escaped.split('\n').filter((line) => line.trim().length > 0);
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const normalized = escaped
+    .split("\n")
+    .filter((line) => line.trim().length > 0);
   const converted = normalized.map(convertMarkdownLine);
   const withWrappedLists = wrapListItems(converted);
 
@@ -178,6 +211,31 @@ const convertToHtml = (markdownText) => {
       font-size: 14px;
       margin-bottom: 16px;
     }
+    .overview-title {
+      font-size: 34px;
+      color: #ff6f91;
+    }
+    .overview-block {
+      font-size: 24px;
+      margin: 20px 0;
+      background: #fff4c3;
+      border-radius: 16px;
+      padding: 18px 22px;
+      border: 2px solid #ffd166;
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+    }
+    .overview-label {
+      font-weight: 700;
+      font-size: 26px;
+      color: #ff6f91;
+    }
+    .overview-content {
+      font-size: 22px;
+      color: #212121;
+      flex: 1;
+    }
     .success-criteria {
       background: #dfffe2;
       border: 2px dashed #34c759;
@@ -197,7 +255,7 @@ const convertToHtml = (markdownText) => {
       <body>
         <div class="lesson-card">
           <div class="badge">Your Weekly English Superpower Session</div>
-          ${withWrappedLists.join('\n')}
+          ${withWrappedLists.join("\n")}
         </div>
       </body>
     </html>
@@ -209,7 +267,7 @@ const extractSummary = (lessonMarkdown) => {
   if (firstHeadingMatch) {
     return firstHeadingMatch[1].trim();
   }
-  return lessonMarkdown.split('\n').slice(0, 2).join(' ').slice(0, 160);
+  return lessonMarkdown.split("\n").slice(0, 2).join(" ").slice(0, 160);
 };
 
 module.exports = {
