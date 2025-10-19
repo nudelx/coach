@@ -61,24 +61,146 @@ const buildEmailSubject = ({ kid, module, kidProgress }) => {
   return `English Lesson ${lessonNumber}: ${module.title} (${module.cefr})`;
 };
 
+const convertMarkdownLine = (line) => {
+  if (/^#/.test(line.trim())) {
+    const level = line.match(/^#+/)[0].length;
+    const text = line.replace(/^#+\s*/, '');
+    return `<h${level}>${text}</h${level}>`;
+  }
+
+  if (/^- /.test(line.trim())) {
+    return `<li>${line.replace(/^- /, '')}</li>`;
+  }
+
+  if (/^\d+[\).\s]/.test(line.trim())) {
+    return `<li>${line.replace(/^\d+[\).\s]/, '')}</li>`;
+  }
+
+  return `<p>${line}</p>`;
+};
+
+const wrapListItems = (segments) => {
+  const grouped = [];
+  let currentList = null;
+
+  segments.forEach((segment) => {
+    if (segment.startsWith('<li>')) {
+      if (!currentList) {
+        currentList = [];
+      }
+      currentList.push(segment);
+    } else {
+      if (currentList) {
+        grouped.push(`<ul>${currentList.join('')}</ul>`);
+        currentList = null;
+      }
+      grouped.push(segment);
+    }
+  });
+
+  if (currentList) {
+    grouped.push(`<ul>${currentList.join('')}</ul>`);
+  }
+
+  return grouped;
+};
+
 const convertToHtml = (markdownText) => {
   const escaped = markdownText
+    .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  const paragraphs = escaped.split('\n\n');
-  const htmlParagraphs = paragraphs.map((paragraph) => {
-    if (paragraph.trim().startsWith('#')) {
-      const level = paragraph.match(/^#+/)[0].length;
-      const text = paragraph.replace(/^#+\s*/, '');
-      return `<h${level}>${text}</h${level}>`;
+  const normalized = escaped.split('\n').filter((line) => line.trim().length > 0);
+  const converted = normalized.map(convertMarkdownLine);
+  const withWrappedLists = wrapListItems(converted);
+
+  const style = `
+    :root {
+      color-scheme: light;
     }
-    if (paragraph.trim().startsWith('- ')) {
-      const items = paragraph.split('\n').map((line) => `<li>${line.replace(/^- /, '')}</li>`).join('');
-      return `<ul>${items}</ul>`;
+    body {
+      font-family: 'Poppins', 'Comic Sans MS', 'Nunito', sans-serif;
+      background: linear-gradient(180deg, #fef6ff 0%, #f3f9ff 100%);
+      color: #2b2d42;
+      font-size: 18px;
+      line-height: 1.6;
+      padding: 24px;
     }
-    return `<p>${paragraph.replace(/\n/g, '<br>')}</p>`;
-  });
-  return `<html><body>${htmlParagraphs.join('\n')}</body></html>`;
+    .lesson-card {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 12px 24px rgba(47, 142, 198, 0.15);
+      padding: 32px 40px;
+      border: 3px solid #ffe45e;
+    }
+    h1, h2, h3 {
+      font-family: 'Baloo 2', 'Fredoka One', cursive;
+      color: #ff8a5b;
+      margin-bottom: 12px;
+      margin-top: 28px;
+      letter-spacing: 0.02em;
+    }
+    h1 {
+      font-size: 36px;
+      text-align: center;
+    }
+    h2 {
+      font-size: 28px;
+    }
+    h3 {
+      font-size: 24px;
+    }
+    p {
+      margin: 12px 0;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 16px 0;
+    }
+    ul li {
+      background: #eff7ff;
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border-left: 6px solid #4dabf5;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #ffbd69;
+      color: #2b2d42;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .success-criteria {
+      background: #dfffe2;
+      border: 2px dashed #34c759;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-top: 24px;
+    }
+  `;
+
+  return `
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Weekly English Lesson</title>
+        <style>${style}</style>
+      </head>
+      <body>
+        <div class="lesson-card">
+          <div class="badge">Your Weekly English Superpower Session</div>
+          ${withWrappedLists.join('\n')}
+        </div>
+      </body>
+    </html>
+  `;
 };
 
 const extractSummary = (lessonMarkdown) => {
