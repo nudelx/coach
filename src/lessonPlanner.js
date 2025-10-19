@@ -121,8 +121,8 @@ const convertToHtml = (markdownText) => {
     body {
       font-family: 'Poppins', 'Comic Sans MS', 'Nunito', sans-serif;
       background: linear-gradient(180deg, #fef6ff 0%, #f3f9ff 100%);
-      color: #2b2d42;
-      font-size: 18px;
+      color: #121212;
+      font-size: 20px;
       line-height: 1.6;
       padding: 24px;
     }
@@ -163,7 +163,8 @@ const convertToHtml = (markdownText) => {
     ul li {
       background: #eff7ff;
       border-radius: 14px;
-      padding: 12px 16px;
+      padding: 14px 18px;
+      font-size: 20px;
       margin-bottom: 10px;
       border-left: 6px solid #4dabf5;
     }
