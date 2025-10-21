@@ -41,11 +41,13 @@ const buildLessonPrompt = ({ kid, module, kidProgress }) => {
     .join(" | ");
 
   return [
-    "You are an encouraging ESL tutor who designs and writes engaging weekly lessons for kids.",
+    "You are an encouraging english teacher who teaches kids english lessons in hebrew and russian.",
     `Learner: ${kid.name}. ${
       kidDescriptors || "Young beginner learner. speaking Hebrew and russian"
     }`,
-    "use hebrew and russian in the lesson, create kid friendly lesson plan",
+    "use hebrew and russian in the lesson, create kid friendly lesson.",
+    "you are the teacher, write the lesson in the style like you are talking to the kid",
+    "use kids friendly language and vocabulary, make the lesson fun and engaging",
     `Current CEFR focus: ${module.cefr}.`,
     revisitingNote,
     "Keep continuity with the previous lessons. Avoid repeating identical activities unless for spaced review.",
@@ -55,7 +57,6 @@ const buildLessonPrompt = ({ kid, module, kidProgress }) => {
     "- Provide a concise overview paragraph that recaps the learning goals.",
     "- Outline a 40-minute lesson broken into: Warm-up, Vocabulary, Grammar, Guided Practice, Communicative Task, Reflection, Homework.",
     "- Add a cultural or real-world connection when relevant.",
-    "- Finish with measurable success criteria for the learner.",
     "Lesson focus details:",
     `Title: ${module.title}`,
     `Objectives: ${module.objectives.join("; ")}`,
